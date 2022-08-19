@@ -10,7 +10,7 @@ from helper_scripts import *
 from secrets_manager.source_api_secret import api_secret
 
 
-DEFAULT_LIMIT = 10000
+DEFAULT_LIMIT = 50000
 
 base_url = f"{api_secret['protocol']}://{api_secret['host']}/{api_secret['resource']}"
 
@@ -51,11 +51,11 @@ def read_data_from_source(base_url, dataset, total_record_count):
     p.close()
     p.join()
 
-    return json.dumps(result, indent=4)
+    return json.dumps(result)
 
 
 def write_data_to_file(source, data):
-    with open(f'{os.getcwd()}/landed_data/{source}.json', 'a') as f:
+    with open(f'{os.getcwd()}/landed_data/{source}.json', 'w') as f:
         f.write(data)
 
 if __name__ == '__main__':
