@@ -6,7 +6,7 @@ import pandas as pd
 
 from multiprocessing import Pool, cpu_count
 
-from helper_scripts import *
+from helper_scripts import is_valid_response
 from secrets_manager.source_api_secret import api_secret
 
 
@@ -73,9 +73,12 @@ if __name__ == '__main__':
         start_time = time()
         data = read_data_from_source(base_url, dataset, total_record_count)
         end_time = time()
-
         print(f'Time taken to read data from source {dataset["source"]}: {end_time - start_time}')
 
+        print('Writing data to file ...')
+        start_time = time()
         write_data_to_file(dataset["source"], data)
+        end_time = time()
+        print(f'Time taken to write data to file {dataset["source"]}: {end_time - start_time}')
 
 
