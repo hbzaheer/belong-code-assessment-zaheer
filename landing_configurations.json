@@ -1,0 +1,16 @@
+{
+    "datasets": [
+        {
+            "source": "monthly_counts_per_hour",
+            "resource_key": "b2ak-trbp",
+            "type": "json",
+            "order": "id"
+        },
+        {
+            "source": "sensor_locations",
+            "resource_key": "h57g-5234",
+            "type": "json",
+            "order": "sensor_id"
+        }
+    ]
+}
