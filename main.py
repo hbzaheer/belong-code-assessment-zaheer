@@ -1,16 +1,16 @@
 import os
 import requests
 import json
+from time import time
 import pandas as pd
 
-import multiprocessing as mp
 from multiprocessing import Pool, cpu_count
 
 from helper_scripts import *
 from secrets_manager.source_api_secret import api_secret
 
 
-DEFAULT_LIMIT = 50000
+DEFAULT_LIMIT = 10000
 
 base_url = f"{api_secret['protocol']}://{api_secret['host']}/{api_secret['resource']}"
 
@@ -23,62 +23,59 @@ def get_source_record_count(base_url, dataset):
     
     if is_valid_response(response):
         record_count = int(response.json()[0]["count"])
-        print(record_count)
         return record_count
     else:
         raise Exception(f"Error: {response.status_code} - {response.url}")
 
 
 
-def get_data_from_source(base_url, offset, limit, order):
+def get_data_from_source(request_url, offset, limit, order):
 
-    total_record_count = get_source_record_count(base_url, dataset)
-    print(f'Total record count: {total_record_count}')
-
-    return requests.get(f'{base_url}/{dataset["resource_key"]}.json?$limit={limit}&$offset={offset}&$order={order}').json()
+    print(f'Reading from Offset {offset} ...')
+    return requests.get(f'{request_url}?$limit={limit}&$offset={offset}&$order={order}').json()
 
 
-def read_data_from_source(base_url, dataset):
-        
-    total_record_count = get_source_record_count(base_url, dataset)
-    print(f'Total record count: {total_record_count}')
+def read_data_from_source(base_url, dataset, total_record_count):
 
     limit = dataset["limit"] if "limit" in dataset and dataset["limit"] != "" else DEFAULT_LIMIT
-    offset = 0
-    all_data = []
+    request_url = f'{base_url}/{dataset["resource_key"]}.json'
 
-    while total_record_count > offset:
-        print(f'Reading from Offset {offset} ...')
-        all_data += get_data_from_source(base_url, offset, limit, dataset["order"])
-        offset += limit
-        print(json.dumps(all_data, indent=4))
-    
-    return json.dumps(all_data)
+    p = Pool(processes=int(cpu_count()/2))
+
+    args = []
+    for i in range(0, total_record_count + 1, limit):
+        args.append((request_url, i, limit, dataset["order"]))
+
+    result = p.starmap(get_data_from_source, args)
+
+    p.close()
+    p.join()
+
+    return json.dumps(result, indent=4)
 
 
 def write_data_to_file(source, data):
     with open(f'{os.getcwd()}/landed_data/{source}.json', 'a') as f:
         f.write(data)
 
+if __name__ == '__main__':
+
+    landing_configurations = json.load(open('landing_configurations.json', 'r'))
+    datasets = landing_configurations['datasets']
 
 
-landing_configurations = json.load(open('landing_configurations.json', 'r'))
-datasets = landing_configurations['datasets']
+    for dataset in datasets:
+        
+        total_record_count = get_source_record_count(base_url, dataset)
+        print(f'Total record count: {total_record_count}')
+        
+        print('Reading data from source ...')
+        start_time = time()
+        data = read_data_from_source(base_url, dataset, total_record_count)
+        end_time = time()
 
+        print(f'Time taken to read data from source {dataset["source"]}: {end_time - start_time}')
 
-for dataset in datasets:
-    
-    print('Reading data from source ...')
-    data = read_data_from_source(base_url, dataset)
-
-    print('Writing data to file ...')
-    write_data_to_file(dataset["source"], data)
-
-
-# results_df = pd.DataFrame.from_records(all_data.json())
-
-# print(f"Count: {results_df.count()[0]}")
-
-# print(json.dumps(response.json(), indent=4))
+        write_data_to_file(dataset["source"], data)
 
 
