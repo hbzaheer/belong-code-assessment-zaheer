@@ -52,5 +52,5 @@ main.py
 
 3. Run tests (Optional)
 ```
-./tests/test_stats.py
+run by uncommenting the last two lines in main.py
 ```
