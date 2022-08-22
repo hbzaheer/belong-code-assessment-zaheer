@@ -1,11 +1,10 @@
 import os
 import pandas as pd
-from stats import get_top_n_records_by_grain
+from assessment.stats import *
 
+df = pd.read_json(f'{os.getcwd()}/tests/test_sample_data.json')
 
 def test_top_n_by_day():
-    
-    df = pd.read_json(f'{os.getcwd()}/test_stats.json')
 
     # random sample of the pedestrian dataset for testing
     top_n = get_top_n_records_by_grain(df, 'day', 'sensor_name', 'hourly_counts', 5)
@@ -25,8 +24,6 @@ def test_top_n_by_day():
 
 def test_top_n_by_month():
 
-    df = pd.read_json(f'{os.getcwd()}/test_stats.json')
-
     # this data contains only values for September and November
     top_n = get_top_n_records_by_grain(df, "month", 'sensor_name', 'hourly_counts', 5)
 
@@ -38,7 +35,4 @@ def test_top_n_by_month():
     test_2 = top_n.loc[(top_n["month"] == "November") & (top_n["rank"] == 5)].iloc[0]
     assert test_2["sensor_name"] == "Princes Bridge"
 
-
-if __name__ == '__main__':
-    test_top_n_by_day()
-    test_top_n_by_month()
+    

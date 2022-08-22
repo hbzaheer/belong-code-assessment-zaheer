@@ -15,9 +15,10 @@ Sensor Locations data is only being dumped onto a JSON file on the disk. It's no
 * tests:
     * Python test script
     * Sample data for tests (JSON)
-* helper_scripts.py: Generic helper functions
+* assessment:
+    * helper_scripts.py: Generic helper functions
+    * stats.py: stats calculation functions
 * landing_configurations.json: Data landing and loading configurations
-* stats.py: stats calculation functions
 
 # Approach
 ## Design Decisions
