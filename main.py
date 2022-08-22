@@ -96,14 +96,10 @@ if __name__ == '__main__':
         print(f'Time taken to write data to file {dataset["source_name"]}: {end_time - start_time}')
 
 
-    print('Running tests ...')
-    test_top_n_by_day()
     print('Top 10 by day ...')
     df = pd.read_json(f'{os.getcwd()}/landed_data/monthly_counts_per_hour.json')
     print(get_top_n_records_by_grain(df, 'day', 'sensor_name', 'hourly_counts', 10))
 
-    print('Running tests ...')
-    test_top_n_by_month()
     print('Top 10 by day ...')
     df = pd.read_json(f'{os.getcwd()}/landed_data/monthly_counts_per_hour.json')
     print(get_top_n_records_by_grain(df, 'day', 'sensor_name', 'hourly_counts', 10))

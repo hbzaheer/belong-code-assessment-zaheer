@@ -37,3 +37,8 @@ def test_top_n_by_month():
     # check the 5th result for November
     test_2 = top_n.loc[(top_n["month"] == "November") & (top_n["rank"] == 5)].iloc[0]
     assert test_2["sensor_name"] == "Princes Bridge"
+
+
+if __name__ == '__main__':
+    test_top_n_by_day()
+    test_top_n_by_month()
