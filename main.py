@@ -5,7 +5,7 @@ from time import time
 import pandas as pd
 
 from multiprocessing import Pool, cpu_count
-from stats import get_top_n_records_by_grain
+from stats import get_top_n_records_by_grain, most_growth_in_past_year
 
 from helper_scripts import is_valid_response, prepare_base_url
 from secrets_manager.secrets import api_secret
@@ -74,13 +74,13 @@ def read_data_from_source(dataset, total_record_count):
     return json.dumps(data, indent=4)
 
 
-def write_data_to_file(source_name, data):
+def write_data_to_file(dataset, data):
     """
     Writes data to a file.
     param source: The source dataset name.
     param data: The data to be written.
     """
-    with open(f'{os.getcwd()}/landed_data/{source_name}.json', 'w') as f:
+    with open(f'{os.getcwd()}/{dataset["output_file_path"]}', 'w') as f:
         f.write(data)
 
 
@@ -102,18 +102,19 @@ if __name__ == '__main__':
 
         print('Writing data to file ...')
         start_time = time()
-        write_data_to_file(dataset["source_name"], data)
+        write_data_to_file(dataset, data)
         end_time = time()
         print(f'Time taken to write data to file {dataset["source_name"]}: {end_time - start_time}')
 
-
-    print('Top 10 by day ...')
     df = pd.read_json(f'{os.getcwd()}/landed_data/monthly_counts_per_hour.json')
+    print('Top 10 by day ...')
     print(get_top_n_records_by_grain(df, 'day', 'sensor_name', 'hourly_counts', 10))
 
-    print('Top 10 by day ...')
-    df = pd.read_json(f'{os.getcwd()}/landed_data/monthly_counts_per_hour.json')
-    print(get_top_n_records_by_grain(df, 'day', 'sensor_name', 'hourly_counts', 10))
+    print('Top 10 by month ...')
+    print(get_top_n_records_by_grain(df, 'month', 'sensor_name', 'hourly_counts', 10))
+
+    print('Most growth in the past year ...')
+    print(most_growth_in_past_year(df, 'date_time', 'year', 'sensor_name', 'hourly_counts'))
 
     
 

@@ -32,7 +32,7 @@ def get_top_n_records_by_grain(df, time_column: str, query_column: str, sum_colu
     return top_n_df
 
 
-def most_growth_in_past_year(df, date_column="date_time", time_column="year", query_column="sensor_name", sum_column="hourly_counts"):
+def most_growth_in_past_year(df, date_column: str, time_column: str, query_column: str, sum_column: str):
     """
     Returns record of the Sensor Location with the highest growth in the past year.
     params df: pandas dataframe as read from landed source data file.
@@ -55,18 +55,18 @@ def most_growth_in_past_year(df, date_column="date_time", time_column="year", qu
     df['month_no'] = df[date_column].dt.strftime('%-m')
 
     # Calculate monthly totals
-    df_sum = df.groupby([query_column, time_column, 'month_no', 'month_year'])[sum_column].sum().reset_index().sort_values(by=[query_column, 'month_year']).reset_index()
+    df_sum = df.groupby([query_column, time_column, 'month_no', 'month_year'])[sum_column].sum().reset_index().sort_values(by=[query_column, 'month_year'])
 
     # Calculate rolling sum for each sensor for past 12 months
     df_sum['rolling_sum'] = df_sum.set_index('month_year').groupby([query_column])[sum_column].rolling(window=12).sum().fillna(0).reset_index()[sum_column]
-
+    
     # Get the last month for which data is available
-    latest_month = df[date_column].max().strftime('%Y-%m')
+    latest_month = df[date_column].max().strftime('%-m')
     latest_year = df[date_column].max().strftime('%Y')
     
     # Filter for only last 24 months
-    df_yearly = df_sum[(df_sum[time_column] >= int(latest_year)-1) & (df_sum['month_no'] == latest_month) & (df_sum['rolling_sum'] > 0)]
-
+    df_yearly = df_sum.loc[(df_sum[time_column] >= int(latest_year)-1) & (df_sum['month_no'] == latest_month) & (df_sum['rolling_sum'] > 0)]
+    
     # Get past years sum of hourly counts for each sensor
     df_yearly['past_rolling_sum'] = df_yearly.groupby([query_column])['rolling_sum'].shift(1).fillna(0)
 
@@ -75,10 +75,6 @@ def most_growth_in_past_year(df, date_column="date_time", time_column="year", qu
     
     df_yearly = df_yearly[(df_yearly[time_column] == int(latest_year)) & (df_yearly['past_rolling_sum'] > 0)].sort_values(by=['growth'], ascending=False)
 
-    return df_yearly.head(1)
+    return df_yearly[[query_column, 'growth']].head(1)
 
-
-if __name__ == "__main__":
-    df = pd.read_json(f'{os.getcwd()}/landed_data/monthly_counts_per_hour.json')
-    print(most_growth_in_past_year(df))
 
