@@ -49,7 +49,7 @@ git clone https://github.com/hbzaheer/belong-code-assessment-zaheer.git
 main.py
 ```
 
-3. (OPTIONAL) Run tests
+3. Run tests (Optional)
 ```
 ./tests/test_stats.py
 ```
