@@ -16,7 +16,11 @@ BASE_URL = prepare_base_url(api_secret)
 DEFAULT_LIMIT = 50000
 
 def get_source_record_count(dataset):
-
+    """
+    Gets number of records in the dataset from API.
+    params dataset: Dataset details for which the count is to be requested.
+    returns: record count.
+    """
     request_url = f'{BASE_URL}/{dataset["resource_key"]}.json?$select=count(*)'
     print(request_url)
 
@@ -30,7 +34,14 @@ def get_source_record_count(dataset):
 
 
 def get_data_from_source(request_url, offset, limit, order):
-
+    """
+    Gets data from source.
+    params request_url: API request url.
+    params offset: offset value for fetching data in chunks.
+    params limit: chunk size.
+    params order: order in which API would return the dataset.
+    returns: API request url for a dataset.
+    """
     print(f'Reading from Offset {offset} ...')
     return requests.get(f'{request_url}?$limit={limit}&$offset={offset}&$order={order}').json()
 

@@ -1,10 +1,20 @@
 
 
 def prepare_base_url(secret):
+    """
+    Returns base URL.
+    params secret: API secret dictionary object.
+    returns: base url for API call.
+    """
     return f"{secret['protocol']}://{secret['host']}/{secret['resource']}"
 
 
 def is_valid_response(response):
+    """
+    Checks for valid response from API.
+    params response: Response from API.
+    returns: True if response code is 200 - Success
+    """
     if response.status_code != 200:
         print(f"Error: {response.status_code} - {response.url}")
         return False
