@@ -113,7 +113,10 @@ if __name__ == '__main__':
     print('Top 10 by month ...')
     print(get_top_n_records_by_grain(df, 'month', 'sensor_name', 'hourly_counts', 10))
 
-    print('Most growth in the past year ...')
+    print('Highest decline in the past 2 years ...')
+    print(most_decline_in_past_2_years(df, 'date_time', 'year', 'sensor_name', 'hourly_counts'))
+
+    print('Highest growth in the past year ...')
     print(most_growth_in_past_year(df, 'date_time', 'year', 'sensor_name', 'hourly_counts'))
 
     # test_top_n_by_day()

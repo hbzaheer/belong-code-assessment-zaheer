@@ -30,6 +30,52 @@ def get_top_n_records_by_grain(df, time_column: str, query_column: str, sum_colu
     return top_n_df
 
 
+def most_decline_in_past_2_years(df, date_column: str, time_column: str, query_column: str, sum_column: str):
+    """
+    Returns record of the Sensor Location with the highest decline in the past 2 years.
+    params df: pandas dataframe as read from landed source data file.
+    params date_column: records timestamp column in the dataframe.
+    params time_column: time grain column in the dataframe.
+    params query_column: column name for sensor locations.
+    params sum_column: column name for sum of hourly pedestrian counts.
+    returns: record of the sensor location with the highest decline in the past 2 years.
+    """
+    # Check if the columns exist in the dataframe.
+    if not is_columns_exists(df, [date_column, time_column, query_column, sum_column]):
+        return None
+
+    # Check if the dataframe contains any data.
+    if not is_contains_data(df):
+        return None
+
+    # Add helper columns for calculating decline in past year
+    df['month_year'] = df[date_column].dt.strftime('%Y-%m')
+    df['month_no'] = df[date_column].dt.strftime('%-m')
+
+    # Calculate monthly totals
+    df_sum = df.groupby([query_column, time_column, 'month_no', 'month_year'])[sum_column].sum().reset_index().sort_values(by=[query_column, 'month_year'])
+
+    # Calculate rolling sum for each sensor for past 12 months
+    df_sum['rolling_sum'] = df_sum.set_index('month_year').groupby([query_column])[sum_column].rolling(window=24).sum().fillna(0).reset_index()[sum_column]
+
+    # Get the last month for which data is available
+    latest_month = df[date_column].max().strftime('%-m')
+    latest_year = df[date_column].max().strftime('%Y')
+    
+    # Filter for only last 24 months
+    df_yearly = df_sum[(df_sum[time_column].isin([int(latest_year), int(latest_year)-2])) & (df_sum['month_no'] == latest_month) & (df_sum['rolling_sum'] > 0)]
+
+    # Get past years sum of hourly counts for each sensor
+    df_yearly['past_rolling_sum'] = df_yearly.groupby([query_column])['rolling_sum'].shift(1).fillna(0)
+
+    # Calculate decline in past year
+    df_yearly['decline'] = df_yearly['rolling_sum'] - df_yearly['past_rolling_sum']
+    
+    df_yearly = df_yearly[(df_yearly[time_column] == int(latest_year)) & (df_yearly['past_rolling_sum'] > 0)].sort_values(by=['decline'], ascending=True)
+
+    return df_yearly[[query_column, 'decline']].head(1)
+
+
 def most_growth_in_past_year(df, date_column: str, time_column: str, query_column: str, sum_column: str):
     """
     Returns record of the Sensor Location with the highest growth in the past year.
@@ -62,7 +108,7 @@ def most_growth_in_past_year(df, date_column: str, time_column: str, query_colum
     latest_month = df[date_column].max().strftime('%-m')
     latest_year = df[date_column].max().strftime('%Y')
     
-    # Filter for only last 24 months
+    # Filter for only for latest and latest-2 years
     df_yearly = df_sum.loc[(df_sum[time_column] >= int(latest_year)-1) & (df_sum['month_no'] == latest_month) & (df_sum['rolling_sum'] > 0)]
     
     # Get past years sum of hourly counts for each sensor

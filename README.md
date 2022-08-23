@@ -5,7 +5,8 @@ This repository contains the my solution to Belong's coding assessment.
 The **main.py** reads the datasets from the source api, dumps the data on the disk in json files, and extracts the below stats:
 * Top 10 (most pedestrians) locations by day.
 * Top 10 (most pedestrians) locations by month.
-* Which location has most growth in last year
+* Which location has shown most decline due to lockdowns in last 2 years.
+* Which location has most growth in last year.
 
 Sensor Locations data is only being dumped onto a JSON file on the disk. It's not being used anywhere in the calculations, as it's not needed for the required calculations.
 
